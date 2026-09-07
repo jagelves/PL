@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where Premier League clubs buy their players</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF8FB; --card:#fff; --ink:#1B0A20; --purple:#37003C;
+    --magenta:#FF2882; --muted:#7A6B80; --line:#E7DFEB;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
+  }
+  header{background:var(--purple); padding:26px 28px 22px}
+  h1{
+    font-family:'Bricolage Grotesque',Inter,sans-serif; font-weight:800;
+    font-size:clamp(26px,4vw,40px); line-height:1.02; letter-spacing:-.025em;
+    color:#fff; margin:0;
+  }
+  .sub{color:#C9A9D1; margin:8px 0 20px; font-size:14px; max-width:620px}
+  .controls{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  select{
+    background:var(--card); border:1px solid var(--line); color:var(--ink);
+    border-radius:2px; padding:9px 12px; font-size:14px; font-weight:500;
+    min-width:150px; font-family:inherit;
+  }
+  .toggle{display:flex; border-radius:2px; overflow:hidden; border:1px solid rgba(255,255,255,.25)}
+  .toggle button{
+    padding:9px 16px; font-size:13px; font-weight:600; border:none; cursor:pointer;
+    background:transparent; color:#fff; font-family:inherit;
+  }
+  .toggle button[aria-pressed="true"]{background:var(--magenta)}
+  select:focus-visible,button:focus-visible{outline:2px solid var(--magenta); outline-offset:2px}
+  .strip{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    border-bottom:1px solid var(--line); background:var(--card);
+  }
+  .stat{padding:18px 20px; border-right:1px solid var(--line)}
+  .stat b{
+    display:block; font-family:'Bricolage Grotesque',Inter,sans-serif;
+    font-size:30px; font-weight:800; letter-spacing:-.03em; line-height:1;
+  }
+  .stat span{color:var(--muted); font-size:12.5px; margin-top:6px; display:block}
+  main{padding:22px 28px 40px}
+  .scope{font-size:13px; color:var(--muted); margin-bottom:26px}
+  h2{font-size:15px; font-weight:600; margin:0 0 14px}
+  .crow{
+    display:grid; grid-template-columns:minmax(96px,132px) 1fr auto; gap:12px;
+    align-items:center; padding:7px 0; border-bottom:1px solid var(--line);
+  }
+  .cname{font-size:13.5px}
+  .cname.home{font-weight:600}
+  .track{background:#F0EAF3; height:20px; border-radius:1px}
+  .bar{height:100%; border-radius:1px; background:var(--magenta); transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .bar.home{background:var(--purple)}
+  .cval{font-size:13px; font-weight:600; min-width:92px; text-align:right}
+  .cval i{color:var(--muted); font-weight:400; font-style:normal}
+  .note{margin-top:10px; font-size:12px; color:var(--muted); max-width:640px}
+  section{margin-bottom:34px}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); background:var(--card)}
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th{
+    text-align:left; padding:9px 12px; font-weight:500; color:var(--muted);
+    font-size:12px; white-space:nowrap; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--card);
+  }
+  td{padding:9px 12px; border-bottom:1px solid #F1EBF4}
+  tbody tr:hover{background:#F6F1F8}
+  .num{text-align:right}
+  .fee{font-weight:600}
+  .dim{color:var(--muted)}
+  .empty{color:var(--muted); font-size:14px; padding:18px 0}
+  .chips{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:16px}
+  .chip{
+    padding:6px 12px; font-size:13px; border:1px solid var(--line); background:var(--card);
+    color:var(--muted); border-radius:999px; cursor:pointer; font-family:inherit;
+  }
+  .chip[aria-pressed="true"]{background:var(--purple); border-color:var(--purple); color:#fff}
+  .chip.eng[aria-pressed="true"]{background:var(--ink); border-color:var(--ink)}
+  .chip small{opacity:.65; margin-left:5px}
+  .mrow{display:grid; grid-template-columns:minmax(96px,132px) 1fr auto; gap:12px;
+        align-items:center; padding:8px 0; border-bottom:1px solid var(--line)}
+  .thin{font-size:12px; color:var(--muted)}
+  .matrix{border-collapse:collapse; font-size:13px; margin-top:6px}
+  .matrix th,.matrix td{padding:7px 12px; border-bottom:1px solid var(--line); text-align:right}
+  .matrix th:first-child,.matrix td:first-child{text-align:left; color:var(--muted)}
+  .matrix thead th{color:var(--muted); font-weight:500; font-size:12px}
+  .best{font-weight:700; color:var(--magenta)}
+  .lgd{display:flex; flex-wrap:wrap; gap:14px; margin:10px 0 0; font-size:12.5px}
+  .lgd i{display:inline-block; width:11px; height:11px; border-radius:2px; margin-right:6px; font-style:normal}
+  .chartwrap{background:var(--card); border:1px solid var(--line); padding:14px 10px 6px}
+  .lede{font-size:14px; line-height:1.55; max-width:70ch; margin:0 0 18px; color:#3A2340}
+  @media (prefers-reduced-motion:reduce){ .bar{transition:none} }
+  @media (max-width:560px){
+    header,main{padding-left:16px; padding-right:16px}
+    select{min-width:0; flex:1 1 140px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Where Premier League clubs buy their players</h1>
+  <p class="sub">Permanent summer signings with a reported fee, by the country the selling club plays in.</p>
+  <div class="controls">
+    <select id="season" aria-label="Season"></select>
+    <select id="club" aria-label="Club"></select>
+    <div class="toggle" role="group" aria-label="Measure">
+      <button id="m-spend" aria-pressed="true">Fee</button>
+      <button id="m-count" aria-pressed="false">Signings</button>
+    </div>
+  </div>
+</header>
+
+<div class="strip" id="strip"></div>
+
+<main>
+  <div class="scope" id="scope"></div>
+  <section>
+    <h2>Selling club's country</h2>
+    <div id="countries"></div>
+  </section>
+  <section id="listwrap">
+    <h2 id="listhead"></h2>
+    <div class="tablewrap"><table>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+    <p class="note">A dash means no Fantasy Premier League record for that season &mdash; usually a player
+    loaned straight back out, or who did not play. Points are full-season totals.</p>
+  </section>
+
+  <section style="border-top:1px solid var(--line); padding-top:28px">
+    <h2>Which market gives the best first season?</h2>
+    <p class="lede">Every fee-paying permanent summer signing from 2016-17 onward, scored on their
+    first Fantasy Premier League season at the buying club. This compares selling countries across
+    all ten seasons and all clubs, so it ignores the filters above.</p>
+    <div class="chips" id="chips"></div>
+    <div class="controls" style="margin-bottom:18px">
+      <select id="metric2" aria-label="Measure">
+        <option value="medPts">Median first-season points</option>
+        <option value="pts90">Median points per 90 (900+ minutes only)</option>
+        <option value="perFee">Points per &euro;m spent</option>
+        <option value="startShare">Share who played 900+ minutes</option>
+      </select>
+    </div>
+    <div id="compare"></div>
+    <h2 style="margin-top:30px">The same measure, season by season</h2>
+    <p class="lede" style="margin-bottom:12px">Only England signs enough players each year for a
+    single season to mean much (23&ndash;51 a year). Everyone else averages two to eight, so a year
+    can hinge on one player. Seasons with fewer than four signings are drawn as hollow dots on a
+    dashed line &mdash; read those as anecdotes, not trend.</p>
+    <div class="chartwrap"><div id="chart"></div></div>
+    <div class="lgd" id="legend"></div>
+
+    <h2 style="margin-top:30px">The same comparison, inside each fee band</h2>
+    <p class="lede" style="margin-bottom:8px">Median first-season points. Dearer players score more, and
+    countries do not sell at the same prices, so any gap in the chart above may just be a price gap.
+    Comparing like-for-like fees is the honest test.</p>
+    <div style="overflow-x:auto"><table class="matrix" id="matrix"></table></div>
+    <p class="note" id="verdict"></p>
+  </section>
+</main>
+
+<script>
+const DATA = {"seasons":["2016-17","2017-18","2018-19","2019-20","2020-21","2021-22","2022-23","2023-24","2024-25","2025-26"],"clubs":["Arsenal","Aston Villa","Bournemouth","Brentford","Brighton & Hove Albion","Burnley","Cardiff City","Chelsea","Crystal Palace","Everton","Fulham","Huddersfield Town","Hull City","Ipswich Town","Leeds United","Leicester City","Liverpool","Luton Town","Manchester City","Manchester United","Middlesbrough","Newcastle United","Norwich City","Nottingham Forest","Sheffield United","Southampton","Stoke City","Sunderland","Swansea City","Tottenham Hotspur","Watford","West Bromwich Albion","West Ham United","Wolverhampton Wanderers"],"countries":["Argentina","Australia","Austria","Belgium","Brazil","Colombia","Costa Rica","Croatia","Czech Republic","Denmark","Ecuador","Egypt","England","France","Germany","Greece","Hungary","Italy","Japan","Korea, South","Netherlands","Norway","Paraguay","Poland","Portugal","Russia","Saudi Arabia","Scotland","Serbia","South Africa","Spain","Sweden","Switzerland","Türkiye","Ukraine","United Arab Emirates","United States","Uruguay"],"fromClubs":["1.FC Nuremberg","1.FC Union Berlin","1.FSV Mainz 05","AC Milan","AC Sparta Prague","ACF Fiorentina","AS Monaco","AS Roma","AS Saint-Étienne","AZ Alkmaar","Ajax Amsterdam","Al Ahly","Al-Hilal SFC","Al-Jazira Club","Almere City","Amiens","Angers SCO","Arsenal","Aston Villa","Aston Villa U21","Atalanta BC","Athletic Bilbao","Atlanta United","Atlético Nacional","Atlético de Madrid","Augsburg","Austria Vienna","BK Häcken","Barcelona","Barnsley","Basel 1893","Bayer 04 Leverkusen","Bayern Munich","Besiktas JK","Birmingham City","Blackburn Rovers","Blackpool","Boavista","Bologna FC 1909","Bolton Wanderers","Borussia Dortmund","Borussia Mönchengladbach","Botafogo de Futebol e Regatas","Bournemouth","Brentford","Brighton & Hove Albion","Bristol City","Bröndby IF","Burnley","CA Boca Juniors","CA Peñarol","CA Rosario Central","CA Talleres","CD Leganés","CR Flamengo","CSKA Moscow","Cardiff City","Celta de Vigo","Celtic","Charlton Athletic","Chelsea","Chelsea FC U21","Chelsea FC U23","Chester","Chicago Fire","Club Brugge KV","Club Cerro Porteño","Club Deportivo Maldonado","Club Estudiantes de La Plata","Club Libertad Asunción","Clube de Regatas Vasco da Gama","Columbus Crew","Copenhagen","Coritiba Foot Ball Club","Coventry City","Cracovia","Crystal Palace","Daejeon Hana Citizen","Deportivo de La Coruña","Derby County","Dijon FCO","Djurgårdens IF","Dundee United","ESTAC Troyes","Eintracht Frankfurt","Empoli","Esbjerg fB","Everton","Exeter City","FK Bodø/Glimt","Fenerbahce","Feyenoord Rotterdam","Fluminense FC U20","Fluminense Football Club","Fulham","GD Estoril Praia","GNK Dinamo Zagreb","Gamba Osaka","Getafe","Gimnàstic de Tarragona","Girona","Girondins Bordeaux","Granada","Grimsby Town","Groningen","Grêmio Foot-Ball Porto Alegrense","HNK Hajduk Split","Halmstads BK","Hannover 96","Hellas Verona","Huddersfield Town","Hull City","IFK Göteborg","Independiente del Valle","Ingolstadt 04","Inter Milan","Ipswich Town","Ituano Futebol Clube (SP)","Juventus","KAA Gent","KAS Eupen","KRC Genk","KV Mechelen","Karlsruher","Kasimpasa","Kawasaki Frontale","LD Alajuelense","LOSC Lille","Lausanne-Sport","Le Havre AC","Lech Poznan","Leeds United","Legia Warszawa","Leicester City","Levante UD","Liverpool","Liverpool FC U23","Lommel SK","Lorient","Luton Town","Maidenhead United","Mamelodi Sundowns","Manchester City","Manchester City U21","Manchester City U23","Manchester United","Manchester United U23","Melbourne City","Metz","Middlesbrough","Midtjylland","Millwall","Molde FK","Montpellier HSC","Málaga","NAC Breda","NEC Nijmegen","Nantes","New England Revolution","Newcastle United","Nordsjaelland","Norwich City","Nottingham Forest","OGC Nice","Odense Boldklub","Olympiacos Piraeus","Olympique Lyon","Olympique Marseille","Olympique de Marseille B","PAOK Thessaloniki","PEC Zwolle","PSV Eindhoven","Paris Saint-Germain","Parma Calcio 1913","Peterborough United","Porto","Portsmouth","Preston North End","Queens Park Rangers","RB Leipzig","RC Lens","RC Strasbourg Alsace","RCD Espanyol B","RCD Espanyol Barcelona","RSC Anderlecht","Rangers","Reading","Real Betis Balompié","Real Madrid","Real Sociedad","Real Valladolid","Red Bull Salzburg","Red Star Belgrade","Rochdale","Rosenborg BK","Royal Antwerp","SC Braga","SC Freiburg","SD Eibar","SK Austria Klagenfurt","SK Slavia Prague","SL Benfica","SL Benfica U19","SS Lazio","SSC Napoli","SV Werder Bremen","Sanfrecce Hiroshima","Santos","Sarpsborg 08 FF","Schalke 04","Sevilla","Shakhtar Donetsk","Sheffield United","Sion","Sociedade Esportiva Palmeiras","Southampton","Southampton FC U21","Sport Club Corinthians Paulista","Sport Club do Recife","Sporting CP","St. Pauli","Stade Brestois 29","Stade Reims","Stade Rennais","Standard Liège","Stevenage","Stoke City","Sunderland","Swansea City","São Paulo Futebol Clube","TSG 1899 Hoffenheim","Torino","Tottenham Hotspur","Toulouse","UC Sampdoria","UD Las Palmas","US Sassuolo","Udinese Calcio","Ufa","Union Saint-Gilloise","Valencia","VfB Stuttgart","VfL Bochum","VfL Wolfsburg","Videoton FC Fehérvár","Viktoria Plzen","Villarreal","Vitesse Arnhem","Vitória Guimarães","Vålerenga Fotball Elite","Watford","Wellington Phoenix","West Bromwich Albion","West Ham United","West Ham United U23","Wigan Athletic","Wimbledon","Wolverhampton Wanderers","Zürich","Östersunds FK"],"rows":[[0,0,"Granit Xhaka",41,14,45.0,85,2483],[0,0,"Shkodran Mustafi",240,30,41.0,90,2274],[0,0,"Lucas Pérez",78,30,20.0,20,272],[0,0,"Takuma Asano",206,18,4.0,0,0],[0,0,"Rob Holding",39,12,3.0,32,810],[0,2,"Jordon Ibe",135,12,18.0,36,1055],[0,2,"Lewis Cook",131,12,7.0,17,432],[0,2,"Lys Mousset",129,13,6.5,14,270],[0,2,"Brad Smith",135,12,3.6,4,269],[0,2,"Marc Wilson",226,12,2.3,0,255],[0,5,"Jeff Hendrick",79,12,11.8,76,2691],[0,5,"Steven Defour",184,3,8.6,54,1068],[0,5,"Jóhann Berg Gudmundsson",59,12,3.0,47,999],[0,5,"Nick Pope",59,12,1.3,0,0],[0,7,"Michy Batshuayi",167,13,39.0,48,254],[0,7,"N'Golo Kanté",133,12,35.8,83,3138],[0,7,"David Luiz",172,13,35.0,132,2954],[0,7,"Marcos Alonso",5,17,23.0,177,2693],[0,8,"Christian Benteke",135,12,31.2,136,3131],[0,8,"Andros Townsend",159,12,15.6,116,2520],[0,8,"James Tomkins",253,12,11.7,75,1974],[0,9,"Yannick Bolasie",76,12,28.9,45,1048],[0,9,"Ashley Williams",228,12,14.0,127,3160],[0,9,"Idrissa Gueye",18,12,8.5,80,2681],[0,9,"Dominic Calvert-Lewin",212,12,1.8,17,347],[0,9,"Maarten Stekelenburg",94,12,1.0,68,1683],[0,12,"Ryan Mason",232,12,15.4,26,927],[0,12,"David Marshall",56,12,4.1,32,1440],[0,12,"Will Keane",145,12,1.2,8,280],[0,12,"James Weir",146,12,0.2,0,0],[0,15,"Islam Slimani",219,24,31.0,83,1281],[0,15,"Ahmed Musa",55,25,19.5,39,761],[0,15,"Nampalys Mendy",163,13,15.5,6,269],[0,15,"Bartosz Kapustka",75,23,5.0,0,0],[0,15,"Ron-Robert Zieler",108,14,3.5,17,754],[0,16,"Sadio Mané",215,12,41.2,156,2242],[0,16,"Georginio Wijnaldum",159,12,27.5,149,2974],[0,16,"Loris Karius",2,14,6.2,32,900],[0,16,"Ragnar Klavan",25,14,5.0,43,1410],[0,18,"John Stones",87,12,55.6,59,2014],[0,18,"Leroy Sané",209,14,52.0,105,1781],[0,18,"İlkay Gündoğan",40,14,27.0,41,704],[0,18,"Claudio Bravo",28,30,18.0,73,1968],[0,18,"Nolito",57,30,18.0,54,777],[0,18,"Marlos Moreno",23,5,5.5,null,null],[0,18,"Gerónimo Rulli",67,37,4.7,null,null],[0,18,"Oleksandr Zinchenko",238,25,2.2,0,0],[0,18,"Pablo Marí",99,30,0.2,null,null],[0,19,"Paul Pogba",118,17,105.0,115,2608],[0,19,"Henrikh Mkhitaryan",40,14,42.0,73,1348],[0,19,"Eric Bailly",246,30,38.0,105,2058],[0,20,"Marten de Roon",20,17,10.5,91,2773],[0,20,"Adama Traoré",18,12,8.2,52,1543],[0,20,"Viktor Fischer",10,20,5.0,25,438],[0,20,"Antonio Barragán",240,30,2.7,71,2193],[0,20,"Fábio",56,12,2.3,null,null],[0,25,"Sofiane Boufal",127,13,18.7,40,1104],[0,25,"Pierre-Emile Højbjerg",32,14,15.0,38,1300],[0,25,"Nathan Redmond",161,12,13.5,126,2898],[0,25,"Alex McCarthy",76,12,4.7,0,0],[0,26,"Joe Allen",135,12,15.5,118,2930],[0,26,"Ramadan Sobhi",11,11,5.0,36,855],[0,26,"Harry Souttar",82,27,3.6,null,null],[0,26,"Ryan Sweeney",256,12,0.3,null,null],[0,27,"Didier Ndong",138,13,20.0,67,2520],[0,27,"Papy Djilobodji",60,12,9.5,24,1577],[0,27,"Paddy McNair",145,12,5.2,12,353],[0,27,"Mika",37,24,1.5,null,null],[0,27,"Donald Love",146,12,1.1,21,611],[0,28,"Borja Bastón",24,30,18.0,32,561],[0,28,"Alfie Mawson",29,12,5.9,94,2430],[0,28,"Fernando Llorente",210,30,5.9,146,2442],[0,28,"Leroy Fer",178,12,5.6,95,2405],[0,28,"Mike van der Hoorn",10,20,2.5,16,662],[0,29,"Moussa Sissoko",159,12,35.0,43,909],[0,29,"Vincent Janssen",9,20,22.0,55,845],[0,29,"Victor Wanyama",215,12,14.4,103,3012],[0,29,"Georges-Kevin N'Koudou",167,13,11.0,8,54],[0,30,"Isaac Success",102,30,15.0,28,519],[0,30,"Roberto Pereyra",118,17,13.5,43,1036],[0,30,"Sven Kums",119,3,9.0,null,null],[0,30,"Daryl Janmaat",159,12,8.9,50,1614],[0,30,"Christian Kabasele",121,3,7.0,35,771],[0,30,"Stefano Okaka",184,3,6.0,43,959],[0,30,"Younès Kaboul",227,12,4.0,57,1910],[0,30,"Brice Dja Djedje",167,13,3.6,0,0],[0,31,"Nacer Chadli",232,12,15.2,110,2135],[0,31,"Matt Phillips",178,12,6.5,115,2181],[0,31,"Allan Nyom",250,12,4.7,74,2638],[0,32,"André Ayew",228,12,24.1,89,1439],[0,32,"Manuel Lanzini",13,35,12.0,133,2708],[0,32,"Arthur Masuaku",165,15,7.1,34,972],[0,32,"Edimilson Fernandes",213,32,6.4,38,1002],[1,0,"Alexandre Lacazette",166,13,53.0,138,2197],[1,2,"Nathan Aké",60,12,22.8,102,3352],[1,2,"Asmir Begovic",60,12,11.5,112,3420],[1,4,"José Izquierdo",65,3,18.0,101,1976],[1,4,"Davy Pröpper",171,20,13.0,87,3118],[1,4,"Mathew Ryan",240,30,6.0,146,3420],[1,4,"Markus Suttner",114,14,4.5,38,1178],[1,4,"Pascal Groß",114,14,3.0,164,2928],[1,4,"Ezequiel Schelotto",219,24,3.0,20,1313],[1,4,"Ales Mateju",245,8,2.5,null,null],[1,4,"Mathias Normann",89,21,1.4,null,null],[1,4,"Soufyan Ahannach",14,20,0.6,null,null],[1,5,"Chris Wood",131,12,16.4,104,1621],[1,5,"Jack Cork",228,12,9.1,100,3420],[1,5,"Nahki Wells",110,12,5.4,9,46],[1,5,"Jonathan Walters",226,12,2.3,3,36],[1,5,"Phil Bardsley",226,12,0.8,33,1125],[1,7,"Álvaro Morata",188,30,66.0,122,2055],[1,7,"Tiemoué Bakayoko",6,13,40.0,77,2121],[1,7,"Danny Drinkwater",133,12,37.9,24,520],[1,7,"Antonio Rüdiger",7,17,35.0,115,2336],[1,7,"Davide Zappacosta",231,17,25.0,58,1087],[1,7,"Ethan Ampadu",88,12,2.8,1,10],[1,8,"Mamadou Sakho",135,12,28.2,81,1597],[1,8,"Jaïro Riedewald",10,20,9.0,23,435],[1,9,"Gylfi Sigurdsson",228,12,49.4,96,2257],[1,9,"Jordan Pickford",227,12,28.5,145,3420],[1,9,"Michael Keane",48,12,28.5,81,2559],[1,9,"Davy Klaassen",10,20,27.0,7,248],[1,9,"Nikola Vlašić",106,7,10.8,18,572],[1,9,"Henry Onyekuru",120,3,8.0,null,null],[1,9,"Sandro Ramírez",154,30,6.0,10,275],[1,11,"Steve Mounié",153,13,13.0,92,1849],[1,11,"Aaron Mooy",142,12,9.1,113,3066],[1,11,"Tom Ince",79,12,9.1,82,2450],[1,11,"Scott Malone",94,12,3.9,41,1110],[1,11,"Laurent Depoitre",175,24,3.8,94,1807],[1,11,"Zanka",72,9,2.7,null,null],[1,11,"Abdelhamid Sabiri",0,14,1.5,10,217],[1,11,"Elias Kachunga",114,14,1.3,46,1327],[1,15,"Kelechi Iheanacho",142,12,27.7,54,818],[1,15,"Adrien Silva",219,24,20.5,23,760],[1,15,"Vicente Iborra",210,30,15.0,58,1411],[1,15,"Harry Maguire",111,12,13.7,117,3420],[1,15,"Eldin Jakupović",111,12,2.3,4,180],[1,15,"Sam Hughes",63,12,0.1,0,0],[1,16,"Mohamed Salah",7,17,42.0,303,2905],[1,16,"Alex Oxlade-Chamberlain",17,12,38.0,94,1718],[1,16,"Andrew Robertson",111,12,9.0,111,1940],[1,18,"Benjamin Mendy",6,13,57.5,20,360],[1,18,"Kyle Walker",232,12,52.7,138,2784],[1,18,"Bernardo Silva",6,13,50.0,112,1514],[1,18,"Ederson",201,24,40.0,158,3195],[1,18,"Danilo",188,30,30.0,100,1340],[1,18,"Douglas Luiz",70,4,12.0,null,null],[1,18,"Olarenwaju Kayode",26,2,3.8,null,null],[1,18,"Luka Ilic",192,28,2.5,null,null],[1,19,"Romelu Lukaku",87,12,84.7,162,2866],[1,19,"Nemanja Matić",60,12,44.7,91,3117],[1,19,"Victor Lindelöf",201,24,35.0,47,1284],[1,21,"Jacob Murphy",161,12,11.3,51,1137],[1,21,"Florian Lejeune",198,30,10.0,66,2103],[1,21,"Christian Atsu",60,12,7.5,78,1776],[1,21,"Joselu",226,12,5.5,null,null],[1,21,"Javier Manquillo",24,30,5.0,49,1757],[1,25,"Mario Lemina",118,17,17.2,58,1715],[1,25,"Wesley Hoedt",203,17,16.0,74,2520],[1,25,"Jan Bednarek",130,23,6.0,22,427],[1,26,"Kevin Wimmer",232,12,19.4,19,1321],[1,26,"Bruno Martins Indi",175,24,7.7,20,1242],[1,28,"Sam Clucas",111,12,16.3,75,2039],[1,28,"Wilfried Bony",142,12,13.0,33,701],[1,28,"Roque Mesa",235,30,12.5,18,753],[1,28,"Cian Harries",74,12,0.3,null,null],[1,29,"Davinson Sánchez",10,20,42.0,107,2532],[1,29,"Serge Aurier",172,13,25.0,77,1427],[1,29,"Fernando Llorente",228,12,15.1,22,224],[1,29,"Juan Foyth",68,0,10.5,0,0],[1,30,"Andre Gray",48,12,20.4,79,1486],[1,30,"Richarlison",93,4,12.4,125,2817],[1,30,"Tom Cleverley",87,12,9.3,58,1900],[1,30,"Will Hughes",79,12,9.1,53,987],[1,30,"Nathaniel Chalobah",60,12,6.3,13,447],[1,30,"Marvin Zeegelaar",219,24,3.0,28,993],[1,30,"Dimitri Foulquier",102,30,2.0,null,null],[1,31,"Oliver Burke",179,14,15.2,23,356],[1,31,"Jay Rodríguez",215,12,13.7,109,2807],[1,31,"Kieran Gibbs",17,12,7.5,86,2826],[1,31,"Yuning Zhang",247,20,7.2,null,null],[1,31,"Gareth Barry",87,12,1.1,56,1921],[1,32,"Marko Arnautovic",226,12,22.3,144,2309],[1,32,"Chicharito",31,14,17.8,null,null],[1,32,"Sead Haksabanovic",107,31,3.0,0,0],[2,0,"Lucas Torreira",234,17,28.6,78,2377],[2,0,"Bernd Leno",31,14,25.0,106,2835],[2,0,"Sokratis Papastathopoulos",40,14,16.0,64,2198],[2,0,"Mattéo Guendouzi",138,13,8.0,47,2140],[2,2,"Jefferson Lerma",134,30,30.5,75,2505],[2,2,"Diego Rico",53,30,15.0,8,606],[2,2,"David Brooks",212,12,11.3,123,2263],[2,4,"Alireza Jahanbakhsh",9,20,22.5,33,1014],[2,4,"Yves Bissouma",127,13,16.8,43,1764],[2,4,"Bernardo",179,14,10.0,null,null],[2,4,"Martín Montoya",240,30,7.0,45,2166],[2,4,"Florin Andone",78,30,6.0,38,866],[2,4,"David Button",94,12,4.5,15,360],[2,4,"Dan Burn",255,12,3.5,0,0],[2,4,"Percy Tau",141,29,3.2,null,null],[2,4,"Anders Dreyer",86,9,2.2,null,null],[2,4,"Billy Arce",113,10,0.9,null,null],[2,4,"Leo Østigård",152,21,0.1,null,null],[2,5,"Ben Gibson",149,12,16.9,6,62],[2,5,"Matej Vydra",79,12,12.2,21,310],[2,5,"Joe Hart",142,12,3.9,69,1710],[2,6,"Josh Murphy",161,12,11.4,76,1810],[2,6,"Bobby De Cordova-Reid",46,12,11.3,80,1413],[2,6,"Greg Cunningham",177,12,4.0,9,630],[2,6,"Alex Smithies",178,12,4.0,0,0],[2,7,"Kepa Arrizabalaga",21,30,80.0,142,3240],[2,7,"Jorginho",204,17,57.0,96,3156],[2,8,"Cheikhou Kouyaté",253,12,10.7,67,1889],[2,9,"Richarlison",250,12,39.2,153,2662],[2,9,"Yerry Mina",28,30,30.2,36,891],[2,9,"Lucas Digne",28,30,20.2,158,2964],[2,10,"Jean Michaël Seri",163,13,30.0,72,2239],[2,10,"Frank Anguissa",167,13,24.9,37,1512],[2,10,"Aleksandar Mitrović",159,12,24.7,134,3280],[2,10,"Alfie Mawson",228,12,16.9,19,1130],[2,10,"Joe Bryan",46,12,6.7,52,2344],[2,10,"Fabri",33,33,6.0,null,null],[2,10,"Maxime Le Marchand",163,13,4.0,38,2250],[2,11,"Terence Kongolo",6,13,20.0,60,2716],[2,11,"Adama Diakhaby",6,13,10.0,19,548],[2,11,"Ramadan Sobhi",226,12,6.5,4,75],[2,11,"Florent Hadergjonaj",114,14,5.0,50,1837],[2,11,"Jonas Lössl",2,14,2.5,99,2777],[2,11,"Juninho Bacuna",104,20,2.5,39,1410],[2,15,"James Maddison",161,12,25.0,137,2831],[2,15,"Ricardo Pereira",175,24,22.0,146,3123],[2,15,"Çağlar Söyüncü",197,14,21.1,9,371],[2,15,"Filip Benkovic",96,7,14.5,0,0],[2,15,"Danny Ward",135,12,14.0,0,0],[2,15,"Rachid Ghezzal",6,13,14.0,28,733],[2,15,"Jonny Evans",252,12,4.0,77,1993],[2,16,"Alisson",7,17,72.5,176,3420],[2,16,"Naby Keïta",179,14,60.0,67,1385],[2,16,"Fabinho",6,13,45.0,65,2011],[2,16,"Xherdan Shaqiri",226,12,14.7,88,1052],[2,18,"Riyad Mahrez",133,12,67.8,102,1331],[2,18,"Philippe Sandler",170,20,2.5,0,0],[2,18,"Daniel Arzani",147,1,0.9,null,null],[2,19,"Fred",211,34,59.0,40,1039],[2,19,"Diogo Dalot",175,24,22.0,27,1009],[2,19,"Lee Grant",226,12,1.7,0,0],[2,21,"Yoshinori Muto",2,14,10.7,24,514],[2,21,"Mikel Merino",40,14,7.0,0,0],[2,21,"Federico Fernández",228,12,6.7,47,1482],[2,21,"Fabian Schär",78,30,4.0,93,2000],[2,21,"Martin Dúbravka",4,8,4.0,131,3420],[2,25,"Jannik Vestergaard",41,14,25.0,50,2027],[2,25,"Mohamed Elyounoussi",30,32,18.0,28,785],[2,25,"Angus Gunn",142,12,11.3,47,1080],[2,25,"Stuart Armstrong",58,27,8.0,75,1421],[2,30,"Gerard Deulofeu",28,30,13.0,133,2064],[2,30,"Adam Masina",38,17,5.0,26,1002],[2,30,"Ben Foster",252,12,2.8,129,3420],[2,30,"Ken Sema",259,31,2.2,37,747],[2,30,"Marc Navarro",183,30,2.0,2,84],[2,30,"Ben Wilmot",225,12,1.7,1,26],[2,30,"Domingos Quina",254,12,1.1,17,334],[2,32,"Felipe Anderson",203,17,38.0,155,3045],[2,32,"Issa Diop",233,13,25.0,87,2970],[2,32,"Andriy Yarmolenko",40,14,20.0,27,456],[2,32,"Lukasz Fabianski",228,12,8.0,143,3420],[2,32,"Lucas Pérez",17,12,4.4,33,465],[2,32,"Fabián Balbuena",217,4,4.0,61,2013],[2,32,"Xande Silva",248,24,1.5,null,null],[2,33,"Adama Traoré",149,12,20.0,44,884],[2,33,"Rui Patrício",219,24,18.0,118,3330],[2,33,"Diogo Jota",24,30,14.0,139,2352],[2,33,"Willy Boly",175,24,12.0,120,3168],[2,33,"Benik Afobe",43,12,11.4,null,null],[2,33,"João Moutinho",6,13,5.6,119,3030],[2,33,"Maximilian Kilman",140,12,4.8,1,1],[2,33,"Léo Bonatini",12,26,4.0,null,null],[2,33,"Rúben Vinagre",6,13,2.2,24,703],[3,0,"Nicolas Pépé",127,13,80.0,106,2004],[3,0,"William Saliba",8,13,30.0,null,null],[3,0,"Kieran Tierney",58,27,27.0,42,986],[3,0,"David Luiz",60,12,8.7,94,2809],[3,0,"Gabriel Martinelli",117,4,7.1,39,656],[3,1,"Wesley Moraes",65,3,25.0,67,1782],[3,1,"Tyrone Mings",43,12,22.3,90,2902],[3,1,"Douglas Luiz",142,12,16.8,90,2604],[3,1,"Matt Targett",215,12,15.5,80,2291],[3,1,"Ezri Konsa",44,12,13.3,65,2038],[3,1,"Marvelous Nakamba",65,3,12.0,43,1826],[3,1,"Mahmoud Trezeguet",124,33,10.0,null,null],[3,1,"Anwar El Ghazi",127,13,9.0,93,2046],[3,1,"Tom Heaton",48,12,8.8,59,1794],[3,1,"Björn Engels",222,13,8.0,42,1446],[3,1,"Jota Peleteiro",34,12,4.5,null,null],[3,1,"Kortney Hause",257,12,3.4,34,1544],[3,2,"Philip Billing",110,12,16.5,68,2526],[3,2,"Arnaut Danjuma",65,3,16.5,24,625],[3,2,"Lloyd Kelly",46,12,14.8,11,638],[3,2,"Jack Stacey",139,12,4.5,39,1547],[3,4,"Adam Webster",46,12,22.2,88,2668],[3,4,"Neal Maupay",44,12,15.6,131,2763],[3,4,"Leandro Trossard",121,3,15.6,104,2004],[3,4,"Matt Clarke",176,12,3.9,0,0],[3,5,"Jay Rodríguez",252,12,10.0,100,2002],[3,5,"Bailey Peacock-Farrell",131,12,2.8,0,0],[3,5,"Erik Pieters",226,12,1.1,77,1876],[3,7,"Mateo Kovacic",188,30,45.0,68,2065],[3,8,"James McCarthy",87,12,3.3,41,1668],[3,8,"Jordan Ayew",228,12,2.8,132,3148],[3,9,"Alex Iwobi",17,12,30.4,52,1591],[3,9,"Moise Kean",118,17,27.5,53,830],[3,9,"André Gomes",28,30,25.0,39,1457],[3,9,"Jean-Philippe Gbamin",2,14,25.0,4,135],[3,9,"Fabian Delph",142,12,9.5,24,1187],[3,15,"Youri Tielemans",6,13,45.0,117,2823],[3,15,"Ayoze Pérez",159,12,33.4,129,1998],[3,15,"Dennis Praet",234,17,19.2,54,1122],[3,15,"James Justin",139,12,6.7,35,1010],[3,16,"Sepp van den Berg",170,20,1.9,null,null],[3,18,"Rodri",24,30,70.0,92,2480],[3,18,"João Cancelo",118,17,65.0,45,1205],[3,18,"Angeliño",171,20,12.0,null,null],[3,18,"Pedro Porro",100,30,12.0,null,null],[3,18,"Zack Steffen",71,36,6.8,null,null],[3,18,"Ryotaro Meshino",97,18,1.0,null,null],[3,19,"Harry Maguire",133,12,87.0,123,3420],[3,19,"Aaron Wan-Bissaka",76,12,55.0,127,3070],[3,19,"Daniel James",228,12,17.8,95,2281],[3,21,"Joelinton",230,14,43.5,78,2678],[3,21,"Allan Saint-Maximin",163,13,18.0,92,1860],[3,21,"Emil Krafth",15,13,5.4,37,1015],[3,22,"Sam Byram",253,12,0.8,32,1292],[3,22,"Daniel Adshead",193,12,0.3,0,0],[3,24,"Oli McBurnie",228,12,19.1,86,2105],[3,24,"Lys Mousset",43,12,11.1,84,1223],[3,24,"Callum Robinson",177,12,7.8,33,669],[3,24,"Luke Freeman",178,12,5.6,13,360],[3,24,"Ben Osborn",162,12,3.9,19,590],[3,25,"Danny Ings",135,12,25.1,198,2800],[3,25,"Ché Adams",34,12,16.7,78,1095],[3,25,"Moussa Djenepo",224,3,15.7,40,920],[3,29,"Tanguy Ndombélé",166,13,62.0,45,1002],[3,29,"Ryan Sessegnon",94,12,27.0,9,341],[3,29,"Jack Clarke",131,12,11.0,null,null],[3,30,"Ismaïla Sarr",223,13,30.0,107,2023],[3,30,"Craig Dawson",252,12,6.0,61,2359],[3,32,"Sébastien Haller",84,14,50.0,102,2259],[3,32,"Pablo Fornals",246,30,28.0,93,2167],[3,32,"Albian Ajeti",30,32,11.3,9,132],[3,33,"Raúl Jiménez",201,24,38.0,194,3241],[3,33,"Patrick Cutrone",3,17,18.0,23,292],[3,33,"Pedro Neto",203,17,17.9,57,920],[3,33,"Leander Dendoncker",184,3,13.8,100,2790],[3,33,"Bruno Jordão",203,17,8.9,1,6],[3,33,"Renat Dadashov",95,24,0.5,null,null],[4,0,"Thomas Partey",24,30,50.0,47,1529],[4,0,"Gabriel Magalhães",127,13,26.0,78,1996],[4,0,"Pablo Marí",54,4,6.0,34,900],[4,0,"Rúnar Alex Rúnarsson",80,13,2.0,1,15],[4,1,"Ollie Watkins",44,12,34.0,168,3328],[4,1,"Bertrand Traoré",166,13,18.4,135,2315],[4,1,"Emiliano Martínez",17,12,17.4,186,3420],[4,1,"Matty Cash",162,12,15.8,89,2373],[4,4,"Jakub Moder",130,23,11.0,21,643],[4,4,"Andi Zeqiri",128,32,4.0,9,164],[4,4,"Michal Karbownik",132,23,3.9,0,0],[4,4,"Jan Paul van Hecke",155,20,2.0,null,null],[4,4,"Joël Veltman",10,20,1.0,96,2280],[4,5,"Dale Stephens",45,12,1.1,8,257],[4,7,"Kai Havertz",31,14,100.0,91,1512],[4,7,"Timo Werner",179,14,53.0,128,2598],[4,7,"Ben Chilwell",133,12,50.2,139,2286],[4,7,"Hakim Ziyech",10,20,40.0,70,1164],[4,7,"Edouard Mendy",223,13,24.0,140,2745],[4,8,"Eberechi Eze",178,12,17.8,125,2555],[4,8,"Jack Butland",226,12,1.1,2,90],[4,9,"Ben Godfrey",161,12,27.5,100,2683],[4,9,"Allan",204,17,24.6,47,2050],[4,9,"Abdoulaye Doucouré",250,12,22.0,80,2443],[4,9,"Niels Nkounkou",168,13,0.3,2,80],[4,10,"Anthony Knockaert",45,12,11.7,0,0],[4,10,"Harrison Reed",215,12,6.5,69,2243],[4,10,"Terence Kongolo",110,12,4.4,2,90],[4,10,"Kenny Tete",166,13,3.2,50,1477],[4,10,"Antonee Robinson",255,12,2.1,57,2159],[4,10,"Tosin Adarabioyo",144,12,1.6,100,2953],[4,14,"Rodrigo",240,30,30.0,89,1279],[4,14,"Jean-Kévin Augustin",179,14,21.0,null,null],[4,14,"Diego Llorente",189,30,20.0,50,1203],[4,14,"Raphinha",223,13,18.6,133,2358],[4,14,"Hélder Costa",257,12,17.7,63,1150],[4,14,"Robin Koch",197,14,13.0,38,1130],[4,14,"Illan Meslier",138,13,6.5,154,3150],[4,14,"Joe Gelhardt",255,12,1.0,0,0],[4,15,"Wesley Fofana",8,13,35.0,71,2260],[4,15,"Timothy Castagne",20,17,20.9,94,2345],[4,16,"Diogo Jota",257,12,44.7,86,1106],[4,16,"Thiago Alcántara",32,14,22.0,null,null],[4,16,"Konstantinos Tsimikas",165,15,13.0,2,6],[4,16,"Marcelo Pitaluga",92,4,0.8,null,null],[4,18,"Rúben Dias",201,24,71.6,142,2843],[4,18,"Nathan Aké",43,12,45.3,29,797],[4,18,"Ferran Torres",240,30,33.5,95,1297],[4,18,"Nahuel Bustos",52,0,6.5,null,null],[4,18,"Yan Couto",73,4,6.0,null,null],[4,18,"Issa Kaboré",122,3,4.5,null,null],[4,19,"Donny van de Beek",10,20,39.0,32,511],[4,19,"Alex Telles",175,24,15.0,25,689],[4,19,"Facundo Pellistri",50,37,8.7,0,0],[4,21,"Callum Wilson",43,12,22.2,134,2081],[4,21,"Jamal Lewis",161,12,16.5,44,1833],[4,24,"Rhian Brewster",136,12,26.0,34,1113],[4,24,"Aaron Ramsdale",43,12,20.5,123,3420],[4,24,"Oliver Burke",252,12,6.5,46,1260],[4,24,"Jayden Bogle",79,12,3.9,39,1107],[4,24,"Max Lowe",79,12,3.9,9,549],[4,24,"Ismaila Coulibaly",208,21,2.0,null,null],[4,25,"Kyle Walker-Peters",232,12,13.3,93,2646],[4,25,"Mohammed Salisu",190,30,12.0,14,841],[4,25,"Ibrahima Diallo",221,13,12.0,31,1010],[4,29,"Giovani Lo Celso",187,30,32.0,35,939],[4,29,"Sergio Reguilón",188,30,30.0,89,2244],[4,29,"Matt Doherty",257,12,16.8,47,1238],[4,29,"Pierre-Emile Højbjerg",215,12,16.6,107,3420],[4,29,"Joe Rodon",228,12,12.1,27,732],[4,31,"Karlan Grant",110,12,16.5,41,1120],[4,31,"Grady Diangana",253,12,13.5,39,1230],[4,31,"Matheus Pereira",219,24,8.2,153,2574],[4,31,"Cédric Kipré",255,12,1.1,0,0],[4,31,"David Button",45,12,1.1,2,90],[4,32,"Tomáš Souček",200,8,16.2,147,3420],[4,32,"Vladimír Coufal",200,8,6.0,128,3054],[4,33,"Fábio Silva",175,24,40.0,72,1352],[4,33,"Nélson Semedo",28,30,32.0,109,2983],[4,33,"Ki-Jana Hoever",136,12,9.8,13,573],[4,33,"Marçal",166,13,2.0,19,618],[4,33,"Toti",95,24,0.8,null,null],[5,0,"Ben White",45,12,58.5,107,2880],[5,0,"Martin Ødegaard",188,30,35.0,131,2782],[5,0,"Aaron Ramsdale",212,12,28.0,135,3060],[5,0,"Takehiro Tomiyasu",38,17,18.6,75,1680],[5,0,"Albert Sambi Lokonga",184,3,17.5,32,1129],[5,0,"Nuno Tavares",201,24,8.0,49,1169],[5,1,"Emiliano Buendía",161,12,38.4,107,1887],[5,1,"Leon Bailey",31,14,32.0,37,750],[5,1,"Danny Ings",215,12,29.4,106,1891],[5,3,"Kristoffer Ajer",58,27,15.7,81,1995],[5,3,"Frank Onyeka",150,9,10.0,35,1040],[5,3,"Yoane Wissa",138,13,10.0,92,1268],[5,3,"Myles Peart-Harris",62,12,1.5,0,0],[5,4,"Enock Mwepu",191,2,23.0,58,990],[5,4,"Marc Cucurella",98,30,18.0,126,3089],[5,4,"Abdallah Sima",200,8,8.0,null,null],[5,4,"Kjell Scherpen",10,20,5.0,0,0],[5,4,"Kaoru Mitoma",125,18,3.0,null,null],[5,4,"Jeremy Sarmiento",202,24,0.6,5,44],[5,5,"Maxwel Cornet",166,13,15.0,104,1764],[5,5,"Nathan Collins",226,12,14.0,55,1670],[5,5,"Connor Roberts",228,12,2.9,69,1689],[5,7,"Romelu Lukaku",115,17,113.0,87,1583],[5,8,"Marc Guéhi",60,12,23.3,123,3222],[5,8,"Joachim Andersen",166,13,17.5,124,2914],[5,8,"Odsonne Édouard",58,27,16.3,87,1554],[5,8,"Michael Olise",186,12,9.3,73,1127],[5,8,"Will Hughes",250,12,7.0,34,1050],[5,9,"Demarai Gray",31,14,2.0,106,2336],[5,14,"Daniel James",145,12,29.1,91,2489],[5,14,"Junior Firpo",28,30,15.0,22,1709],[5,14,"Jack Harrison",142,12,12.8,117,2638],[5,14,"Kristoffer Klaesson",249,21,2.4,2,35],[5,15,"Patson Daka",191,2,30.0,70,1152],[5,15,"Boubakary Soumaré",127,13,20.0,36,1095],[5,15,"Jannik Vestergaard",215,12,17.6,11,563],[5,16,"Ibrahima Konaté",179,14,40.0,33,990],[5,18,"Jack Grealish",18,12,117.5,86,1910],[5,19,"Jadon Sancho",40,14,85.0,91,1894],[5,19,"Raphaël Varane",188,30,40.0,75,1829],[5,19,"Cristiano Ronaldo",118,17,17.0,159,2454],[5,21,"Joe Willock",17,12,29.4,79,2037],[5,22,"Christos Tzolis",169,15,11.0,16,326],[5,22,"Milot Rashica",205,14,11.0,70,2228],[5,22,"Josh Sargent",205,14,9.5,60,1566],[5,22,"Ben Gibson",48,12,9.3,53,2494],[5,22,"Dimitrios Giannoulis",169,15,7.5,39,1165],[5,22,"Angus Gunn",215,12,5.8,31,810],[5,22,"Pierre Lees-Melou",163,13,3.9,70,2261],[5,25,"Tino Livramento",62,12,26.2,80,2200],[5,25,"Adam Armstrong",35,12,17.7,57,1409],[5,25,"Romain Perraud",221,13,12.0,38,1621],[5,25,"Lyanco",231,17,7.5,19,906],[5,29,"Emerson Royal",28,30,25.0,102,2282],[5,29,"Bryan Gil",210,30,25.0,9,86],[5,29,"Pape Matar Sarr",148,13,16.9,null,null],[5,30,"Imrân Louza",157,13,10.0,31,1415],[5,30,"Emmanuel Dennis",65,3,4.0,134,2579],[5,30,"Moussa Sissoko",232,12,3.5,85,3220],[5,30,"Mattie Pollock",103,12,0.3,0,0],[5,32,"Kurt Zouma",60,12,35.0,66,2078],[5,32,"Nikola Vlašić",55,25,30.0,30,549],[5,32,"Craig Dawson",250,12,2.3,90,2752],[5,33,"Rayan Aït-Nouri",16,13,11.1,87,1826],[5,33,"José Sá",165,15,8.0,146,3285],[5,33,"Yerson Mosquera",23,5,5.2,0,0],[5,33,"Bendegúz Bolla",244,16,2.0,null,null],[6,0,"Gabriel Jesus",142,12,52.2,125,2064],[6,0,"Fábio Vieira",175,24,35.0,40,500],[6,0,"Oleksandr Zinchenko",142,12,35.0,99,2122],[6,0,"Matt Turner",158,36,5.9,0,0],[6,0,"Marquinhos",229,4,3.5,null,null],[6,1,"Diego Carlos",210,30,31.0,4,205],[6,1,"Philippe Coutinho",28,30,20.0,32,777],[6,1,"Leander Dendoncker",257,12,15.0,37,897],[6,1,"Robin Olsen",7,17,3.5,10,280],[6,2,"Marcos Senesi",91,20,15.0,69,2489],[6,2,"Marcus Tavernier",149,12,11.9,94,1740],[6,3,"Keane Lewis-Potter",111,12,19.0,14,313],[6,3,"Mikkel Damsgaard",234,17,15.0,33,970],[6,3,"Aaron Hickey",38,17,14.2,63,1918],[6,4,"Pervis Estupiñán",246,30,17.8,128,2674],[6,4,"Julio Enciso",69,22,11.6,57,794],[6,4,"Billy Gilmour",60,12,8.3,21,502],[6,4,"Simon Adingra",160,9,8.0,null,null],[6,7,"Wesley Fofana",133,12,80.4,37,1362],[6,7,"Marc Cucurella",45,12,65.3,65,1669],[6,7,"Raheem Sterling",142,12,56.2,101,1886],[6,7,"Kalidou Koulibaly",204,17,41.9,74,1798],[6,7,"Carney Chukwuemeka",18,12,18.0,18,342],[6,7,"Cesare Casadei",115,17,14.9,null,null],[6,7,"Pierre-Emerick Aubameyang",28,30,12.0,25,546],[6,7,"Gabriel Slonina",64,36,9.1,null,null],[6,8,"Cheick Doucouré",180,13,22.6,74,2770],[6,8,"Chris Richards",32,14,12.0,13,443],[6,9,"Amadou Onana",127,13,39.9,77,2486],[6,9,"Dwight McNeil",48,12,17.0,126,2490],[6,9,"Neal Maupay",45,12,11.8,41,1104],[6,9,"James Garner",145,12,10.4,25,796],[6,9,"Idrissa Gueye",172,13,4.0,66,2577],[6,10,"João Palhinha",219,24,24.9,83,3108],[6,10,"Issa Diop",253,12,17.8,79,2008],[6,10,"Andreas Pereira",145,12,9.5,123,2696],[6,10,"Kevin Mbabu",243,14,5.5,7,141],[6,10,"Carlos Vinícius",201,24,5.0,72,1098],[6,10,"Bernd Leno",17,12,3.6,142,3240],[6,14,"Brenden Aaronson",191,2,32.8,83,2365],[6,14,"Luis Sinisterra",91,20,25.0,53,863],[6,14,"Tyler Adams",179,14,17.0,47,2156],[6,14,"Rasmus Kristensen",191,2,13.0,51,1957],[6,14,"Marc Roca",32,14,12.0,67,2316],[6,14,"Darko Gyabi",143,12,5.8,1,7],[6,14,"Wilfried Gnonto",258,32,4.5,55,1346],[6,15,"Wout Faes",222,13,17.0,78,2786],[6,16,"Darwin Núñez",201,24,85.0,100,1684],[6,16,"Fábio Carvalho",94,12,9.4,27,339],[6,18,"Erling Haaland",40,14,60.0,272,2767],[6,18,"Kalvin Phillips",131,12,49.0,14,291],[6,18,"Manuel Akanji",40,14,20.0,82,2284],[6,18,"Sergio Gómez",184,3,15.0,21,340],[6,19,"Antony",10,20,95.0,82,1803],[6,19,"Casemiro",188,30,70.7,87,2122],[6,19,"Lisandro Martínez",10,20,57.4,81,2113],[6,19,"Tyrell Malacia",91,20,15.0,62,1391],[6,21,"Alexander Isak",189,30,77.5,100,1520],[6,21,"Sven Botman",127,13,37.0,129,3127],[6,21,"Matt Targett",18,12,17.5,35,600],[6,21,"Nick Pope",48,12,11.5,157,3261],[6,23,"Morgan Gibbs-White",257,12,29.5,145,3151],[6,23,"Taiwo Awoniyi",1,14,20.5,100,1395],[6,23,"Neco Williams",135,12,20.0,54,1872],[6,23,"Emmanuel Dennis",250,12,14.8,39,709],[6,23,"Moussa Niakhaté",2,14,13.8,25,1163],[6,23,"Orel Mangala",241,14,13.0,50,1543],[6,23,"Giulian Biancone",83,13,10.0,2,15],[6,23,"Lewis O'Brien",110,12,9.4,22,578],[6,23,"Omar Richards",32,14,8.5,0,0],[6,23,"Remo Freuler",20,17,8.3,54,2157],[6,23,"Ui-jo Hwang",101,13,4.0,null,null],[6,23,"Willy Boly",257,12,2.6,37,684],[6,23,"Harry Toffolo",110,12,2.4,30,933],[6,23,"Josh Bowler",36,12,2.3,null,null],[6,23,"Brandon Aguilera",126,6,0.9,null,null],[6,25,"Roméo Lavia",143,12,22.3,57,2219],[6,25,"Gavin Bazunu",143,12,14.0,84,2880],[6,25,"Armel Bella-Kotchap",242,14,12.0,49,1881],[6,25,"Sékou Mara",101,13,11.5,32,538],[6,25,"Joe Aribo",185,27,8.2,46,1219],[6,25,"Duje Caleta-Car",167,13,8.0,28,942],[6,25,"Samuel Edozie",143,12,8.0,23,554],[6,25,"Juan Larios",143,12,7.0,4,150],[6,29,"Richarlison",87,12,58.0,54,995],[6,29,"Cristian Romero",20,17,52.0,66,2363],[6,29,"Yves Bissouma",45,12,29.2,27,998],[6,29,"Destiny Udogie",237,17,18.0,null,null],[6,29,"Djed Spence",149,12,14.7,4,5],[6,32,"Lucas Paquetá",166,13,43.0,98,2154],[6,32,"Gianluca Scamacca",236,17,38.6,41,921],[6,32,"Nayef Aguerd",223,13,35.0,58,1594],[6,32,"Maxwel Cornet",48,12,20.7,14,232],[6,32,"Emerson",60,12,15.4,null,null],[6,32,"Thilo Kehrer",172,13,12.0,67,2229],[6,32,"Flynn Downes",228,12,10.7,27,752],[6,32,"Alphonse Areola",172,13,9.3,7,307],[6,33,"Matheus Nunes",219,24,47.4,80,2467],[6,33,"Gonçalo Guedes",240,30,32.6,29,703],[6,33,"Nathan Collins",48,12,24.3,49,1811],[6,33,"Sasa Kalajdzic",241,14,18.0,1,45],[6,33,"Hee-chan Hwang",179,14,16.7,60,1117],[7,0,"Declan Rice",253,12,116.6,165,3225],[7,0,"Kai Havertz",60,12,75.0,180,2627],[7,0,"Jurriën Timber",10,20,40.0,0,70],[7,1,"Moussa Diaby",31,14,55.0,142,2168],[7,1,"Pau Torres",246,30,33.0,85,2462],[7,2,"Tyler Adams",131,12,26.9,5,118],[7,2,"Hamed Traoré",236,17,25.6,3,44],[7,2,"Alex Scott",46,12,23.0,41,1003],[7,2,"Milos Kerkez",9,20,20.5,59,1966],[7,2,"Romain Faivre",166,13,15.0,4,37],[7,2,"Justin Kluivert",7,17,10.8,100,1910],[7,2,"Max Aarons",161,12,8.1,28,1233],[7,3,"Nathan Collins",257,12,26.9,84,2649],[7,3,"Kevin Schade",197,14,25.0,33,327],[7,3,"Mark Flekken",197,14,13.0,119,3285],[7,4,"João Pedro",250,12,34.2,104,2037],[7,4,"Carlos Baleba",127,13,27.0,34,1314],[7,4,"Bart Verbruggen",184,3,20.0,68,1890],[7,4,"Igor Julio",5,17,16.5,37,1631],[7,5,"Zeki Amdouni",30,32,18.6,85,1953],[7,5,"James Trafford",142,12,17.3,70,2520],[7,5,"Aaron Ramsey",19,12,16.4,18,522],[7,5,"Jordan Beyer",41,14,15.0,30,1234],[7,5,"Sander Berge",212,12,13.9,74,3002],[7,5,"Wilson Odobert",83,13,12.0,82,2095],[7,5,"Dara O'Shea",252,12,7.8,69,2892],[7,5,"Michael Obafemi",228,12,4.0,2,19],[7,5,"Hannes Delcroix",184,3,3.0,7,584],[7,5,"Luca Koleosho",182,30,3.0,40,972],[7,7,"Moisés Caicedo",45,12,116.0,84,2865],[7,7,"Roméo Lavia",215,12,62.1,1,32],[7,7,"Christopher Nkunku",179,14,60.0,29,437],[7,7,"Cole Palmer",142,12,47.0,244,2617],[7,7,"Axel Disasi",6,13,45.0,71,2579],[7,7,"Nicolas Jackson",246,30,37.0,142,2801],[7,7,"Lesley Ugochukwu",223,13,27.0,13,296],[7,7,"Robert Sánchez",45,12,23.0,59,1433],[7,7,"Djordje Petrovic",158,36,16.0,71,1986],[7,7,"Deivid Washington",207,4,16.0,2,11],[7,7,"Ângelo",207,4,15.0,null,null],[7,8,"Matheus França",54,4,20.0,16,224],[7,8,"Dean Henderson",145,12,17.5,48,1620],[7,8,"Rob Holding",17,12,1.2,0,0],[7,9,"Beto",237,17,25.0,null,null],[7,9,"Youssef Chermiti",219,24,12.5,16,196],[7,10,"Alex Iwobi",87,12,25.7,102,2331],[7,10,"Calvin Bassey",10,20,22.5,66,2299],[7,10,"Timothy Castagne",133,12,13.0,105,2630],[7,10,"Raúl Jiménez",257,12,6.4,72,1390],[7,10,"Steven Benda",228,12,0.9,0,0],[7,16,"Dominik Szoboszlai",179,14,70.0,99,2102],[7,16,"Alexis Mac Allister",45,12,42.0,109,2600],[7,16,"Ryan Gravenberch",32,14,40.0,45,1110],[7,16,"Wataru Endo",241,14,20.0,47,1714],[7,17,"Ryan Giles",257,12,5.8,11,498],[7,17,"Tahith Chong",34,12,4.7,78,1972],[7,17,"Mads Andersen",29,12,3.5,15,397],[7,17,"Jacob Brown",226,12,2.9,39,1013],[7,17,"Thomas Kaminski",35,12,2.9,86,3405],[7,17,"Marvelous Nakamba",18,12,2.9,21,1131],[7,18,"Josko Gvardiol",179,14,90.0,123,2327],[7,18,"Matheus Nunes",257,12,62.0,32,831],[7,18,"Jérémy Doku",223,13,60.0,98,1585],[7,18,"Mateo Kovacic",60,12,29.1,59,1539],[7,19,"Rasmus Højlund",20,17,77.8,112,2156],[7,19,"Mason Mount",60,12,67.7,23,509],[7,19,"André Onana",115,17,50.2,133,3420],[7,19,"Altay Bayındır",90,33,5.0,0,0],[7,21,"Sandro Tonali",3,17,58.9,16,437],[7,21,"Harvey Barnes",133,12,44.0,64,788],[7,21,"Tino Livramento",215,12,37.2,45,1302],[7,21,"Yankuba Minteh",164,9,8.0,null,null],[7,23,"Ibrahim Sangaré",171,20,35.0,25,1031],[7,23,"Anthony Elanga",145,12,22.9,119,2424],[7,23,"Chris Wood",159,12,17.0,131,1801],[7,23,"Andrew Omobamidele",161,12,12.8,11,782],[7,23,"Murillo",217,4,12.0,58,2790],[7,23,"Matt Turner",17,12,8.2,41,1530],[7,23,"Nicolás Domínguez",38,17,6.7,67,1489],[7,23,"Odysseas Vlachodimos",201,24,4.9,12,450],[7,23,"Callum Hudson-Odoi",60,12,3.5,109,1846],[7,24,"Cameron Archer",18,12,21.6,82,1829],[7,24,"Gustavo Hamer",74,12,17.3,108,2908],[7,24,"Vini Souza",137,3,12.5,73,2664],[7,24,"Auston Trusty",17,12,5.8,28,2568],[7,24,"Bénie Traoré",27,31,4.6,11,383],[7,24,"Anis Slimane",47,9,2.7,14,409],[7,29,"Brennan Johnson",162,12,55.0,131,2317],[7,29,"James Maddison",133,12,46.3,117,2137],[7,29,"Pedro Porro",219,24,40.0,136,3090],[7,29,"Micky van de Ven",243,14,40.0,81,2341],[7,29,"Dejan Kulusevski",118,17,30.0,130,2759],[7,29,"Guglielmo Vicario",85,17,18.5,112,3420],[7,29,"Alejo Veliz",51,0,15.0,11,45],[7,29,"Ashley Phillips",35,12,2.3,0,0],[7,32,"Mohammed Kudus",10,20,43.0,137,2485],[7,32,"Edson Álvarez",10,20,38.0,62,2375],[7,32,"James Ward-Prowse",215,12,34.8,146,3000],[7,32,"Konstantinos Mavropanos",241,14,20.0,40,1500],[7,32,"Andrew Irving",199,2,1.8,null,null],[7,33,"Matheus Cunha",24,30,50.0,135,2438],[7,33,"Jean-Ricner Bellegarde",181,13,15.0,45,948],[7,33,"Santiago Bueno",100,30,12.0,13,819],[7,33,"Boubacar Traoré",148,13,11.0,25,802],[7,33,"Enso González",69,22,6.0,1,1],[8,0,"Riccardo Calafiori",38,17,45.0,39,978],[8,0,"Mikel Merino",189,30,32.0,92,1575],[8,0,"David Raya",44,12,31.9,142,3420],[8,1,"Amadou Onana",87,12,59.4,65,1613],[8,1,"Ian Maatsen",60,12,44.5,57,1125],[8,1,"Cameron Archer",212,12,16.6,57,1421],[8,1,"Jaden Philogene",111,12,16.0,37,796],[8,1,"Samuel Iling-Junior",118,17,14.0,0,0],[8,1,"Lewis Dobbin",87,12,11.8,0,0],[8,1,"Enzo Barrenechea",118,17,8.0,0,0],[8,1,"Ross Barkley",139,12,5.9,44,567],[8,2,"Evanilson",175,24,37.0,128,2317],[8,2,"Luis Sinisterra",131,12,23.4,23,229],[8,2,"Dean Huijsen",118,17,19.6,104,2422],[8,2,"Enes Ünal",98,30,16.5,32,330],[8,2,"Julián Araujo",28,30,10.0,12,492],[8,2,"Alex Paulsen",251,1,2.3,0,0],[8,3,"Igor Thiago",65,3,33.0,9,167],[8,3,"Sepp van den Berg",135,12,23.6,62,2584],[8,3,"Fábio Carvalho",135,12,23.4,35,443],[8,3,"Gustavo Nunes",105,4,12.0,3,11],[8,3,"Jayden Meghoma",216,12,5.9,1,4],[8,4,"Georginio Rutter",131,12,46.7,95,1651],[8,4,"Yankuba Minteh",159,12,35.0,102,1831],[8,4,"Mats Wieffer",91,20,32.0,52,1003],[8,4,"Brajan Gruda",2,14,31.5,45,676],[8,4,"Ferdi Kadıoğlu",90,33,30.0,19,385],[8,4,"Matt O'Riley",58,27,29.5,50,929],[8,4,"Ibrahim Osman",160,9,19.5,0,0],[8,4,"Malick Yalcouyé",112,31,7.0,null,null],[8,7,"Pedro Neto",257,12,60.0,104,2262],[8,7,"João Félix",24,30,52.0,24,362],[8,7,"Kiernan Dewsbury-Hall",133,12,35.4,18,257],[8,7,"Filip Jørgensen",246,30,24.5,18,540],[8,7,"Omari Kellyman",19,12,22.5,0,0],[8,7,"Mike Penders",121,3,20.0,null,null],[8,7,"Aarón Anselmino",49,0,16.5,0,0],[8,7,"Renato Veiga",30,32,14.0,7,176],[8,7,"Caleb Wiley",22,36,10.1,0,0],[8,7,"Marc Guiu",28,30,6.0,3,71],[8,8,"Eddie Nketiah",17,12,29.7,53,1018],[8,8,"Maxence Lacroix",243,14,18.0,114,3116],[8,8,"Chadi Riad",187,30,15.0,1,90],[8,8,"Ismaïla Sarr",167,13,15.0,149,2708],[8,9,"Jake O'Brien",166,13,19.5,65,1568],[8,9,"Iliman Ndiaye",167,13,18.0,114,2426],[8,9,"Tim Iroegbunam",18,12,10.7,22,562],[8,10,"Emile Smith Rowe",17,12,31.8,114,2036],[8,10,"Joachim Andersen",76,12,29.5,51,2673],[8,10,"Sander Berge",48,12,23.6,53,2221],[8,10,"Jorge Cuenca",246,30,6.7,9,349],[8,13,"Omari Hutchinson",60,12,23.5,88,2585],[8,13,"Jacob Greaves",111,12,21.5,37,2205],[8,13,"Liam Delap",143,12,17.9,132,2587],[8,13,"Jack Clarke",227,12,17.7,53,1161],[8,13,"Dara O'Shea",48,12,14.2,49,3122],[8,13,"Sammie Szmodics",35,12,10.6,54,988],[8,13,"Arijanet Murić",48,12,9.6,49,1620],[8,13,"Chiedozie Ogbene",139,12,9.5,7,237],[8,13,"Conor Townsend",252,12,0.6,11,334],[8,15,"Oliver Skipp",232,12,23.5,27,1118],[8,15,"Bilal El Khannouss",121,3,22.5,83,2179],[8,15,"Issahaku Fatawu",219,24,16.2,null,null],[8,15,"Caleb Okoli",20,17,14.0,27,1122],[8,15,"Michael Golding",61,12,5.9,1,1],[8,15,"Jordan Ayew",76,12,5.9,75,1649],[8,16,"Giorgi Mamardashvili",240,30,30.0,null,null],[8,16,"Federico Chiesa",118,17,12.0,7,103],[8,18,"Savinho",83,13,25.0,106,1760],[8,19,"Leny Yoro",127,13,62.0,22,1160],[8,19,"Manuel Ugarte",172,13,50.0,49,1777],[8,19,"Matthijs de Ligt",32,14,45.0,68,2119],[8,19,"Joshua Zirkzee",38,17,42.5,64,1385],[8,19,"Noussair Mazraoui",32,14,15.0,88,2836],[8,21,"Lewis Hall",60,12,33.0,102,2188],[8,21,"Odysseas Vlachodimos",162,12,23.6,0,0],[8,21,"William Osula",212,12,11.6,19,124],[8,23,"Elliot Anderson",159,12,41.2,107,2726],[8,23,"Nikola Milenković",5,17,12.3,145,3330],[8,23,"Ramón Sosa",52,0,12.0,25,280],[8,23,"Morato",201,24,11.0,null,null],[8,23,"David Carmo",175,24,11.0,null,null],[8,23,"Jota Silva",248,24,7.0,null,null],[8,23,"Marko Stamenic",192,28,5.5,null,null],[8,23,"Carlos Miguel",217,4,4.0,0,0],[8,23,"Eric da Silva Moreira",220,14,1.5,2,28],[8,25,"Taylor Harwood-Bellis",142,12,23.0,55,2824],[8,25,"Aaron Ramsdale",17,12,21.4,97,2700],[8,25,"Flynn Downes",253,12,17.9,48,2149],[8,25,"Cameron Archer",18,12,17.6,57,1421],[8,25,"Mateus Fernandes",219,24,15.0,95,2911],[8,25,"Ben Brereton Díaz",246,30,8.3,13,446],[8,25,"Yukinari Sugawara",9,20,7.0,43,1548],[8,25,"Nathan Wood",228,12,3.5,14,771],[8,25,"Ronnie Edwards",174,12,3.5,1,12],[8,25,"Juan",229,4,0.9,0,0],[8,29,"Dominic Solanke",43,12,64.3,108,2199],[8,29,"Archie Gray",131,12,41.2,45,1750],[8,29,"Wilson Odobert",48,12,29.3,34,843],[8,29,"Lucas Bergvall",81,31,20.0,44,1200],[8,32,"Maximilian Kilman",257,12,47.5,82,3348],[8,32,"Crysencio Summerville",131,12,29.3,33,776],[8,32,"Niclas Füllkrug",40,14,27.0,42,783],[8,32,"Luis Guilherme",214,4,23.0,12,139],[8,32,"Aaron Wan-Bissaka",145,12,17.6,118,3154],[8,33,"André",93,4,22.0,61,2472],[8,33,"Rodrigo Gomes",196,24,15.0,42,794],[8,33,"Sam Johnstone",76,12,11.9,12,630],[8,33,"Pedro Lima",218,4,10.0,2,69],[8,33,"Tommy Doyle",142,12,5.0,28,474],[8,33,"Bastien Meupiyou",157,13,5.0,0,0],[9,0,"Martín Zubimendi",189,30,70.0,133,2991],[9,0,"Eberechi Eze",76,12,69.3,113,1885],[9,0,"Viktor Gyökeres",219,24,65.8,128,2217],[9,0,"Noni Madueke",60,12,56.0,72,1205],[9,0,"Cristhian Mosquera",240,30,15.0,40,986],[9,0,"Christian Nørgaard",44,12,11.6,7,101],[9,0,"Kepa Arrizabalaga",60,12,5.8,2,90],[9,1,"Evann Guessand",163,13,30.0,44,909],[9,1,"Marco Bizot",221,13,0.5,16,585],[9,2,"Bafodé Diakité",127,13,35.0,46,1275],[9,2,"Djordje Petrovic",60,12,28.9,124,3420],[9,2,"Ben Gannon-Doak",135,12,23.2,11,105],[9,2,"Amine Adli",31,14,21.0,67,1074],[9,2,"Veljko Milosavljevic",192,28,15.0,19,367],[9,2,"Adrien Truffert",223,13,13.5,165,3378],[9,3,"Dango Ouattara",43,12,42.8,136,2271],[9,3,"Antoni Milambo",91,20,20.0,1,45],[9,3,"Michael Kayode",5,17,17.5,113,3258],[9,3,"Caoimhín Kelleher",135,12,14.8,143,3330],[9,3,"Romelle Donovan",34,12,3.6,4,38],[9,4,"Charalampos Kostoulas",165,15,35.0,35,351],[9,4,"Maxim De Cuyper",65,3,20.0,84,1404],[9,4,"Tom Watson",227,12,12.0,5,57],[9,4,"Diego Coppola",109,17,11.0,10,193],[9,4,"Do-young Yoon",77,19,2.0,null,null],[9,5,"Lesley Ugochukwu",60,12,28.7,97,2330],[9,5,"Armando Broja",60,12,23.0,43,843],[9,5,"Loum Tchaouna",203,17,15.2,59,1259],[9,5,"Bashir Humphreys",60,12,14.0,47,1574],[9,5,"Marcus Edwards",219,24,10.0,51,1058],[9,5,"Quilindschy Hartman",91,20,10.0,63,1825],[9,5,"Jaidon Anthony",43,12,9.5,127,2717],[9,5,"Zian Flemming",151,12,8.3,99,1764],[9,5,"Jacob Bruun Larsen",241,14,4.0,41,1014],[9,5,"Max Weiß",123,14,4.0,7,270],[9,7,"João Pedro",45,12,63.7,177,2658],[9,7,"Jamie Gittens",40,14,56.0,25,486],[9,7,"Alejandro Garnacho",145,12,46.2,56,1261],[9,7,"Estêvão",214,4,45.0,58,839],[9,7,"Jorrel Hato",10,20,44.2,19,1139],[9,7,"Liam Delap",116,12,35.5,45,1092],[9,7,"Dário Essugo",219,24,22.3,1,26],[9,7,"Mamadou Sarr",181,13,14.0,3,100],[9,7,"Kendry Páez",113,10,10.0,0,0],[9,8,"Yéremy Pino",246,30,30.0,77,2074],[9,8,"Jaydee Canvot",233,13,23.0,72,1331],[9,8,"Borna Sosa",10,20,2.3,6,99],[9,9,"Tyler Dibling",215,12,40.5,18,349],[9,9,"Thierno Barry",246,30,30.0,95,1898],[9,9,"Kiernan Dewsbury-Hall",60,12,28.6,151,2629],[9,9,"Carlos Alcaraz",54,4,15.0,29,679],[9,9,"Adam Aznou",32,14,9.0,0,0],[9,9,"Mark Travers",43,12,4.6,0,0],[9,10,"Kevin",211,34,40.0,49,1030],[9,10,"Benjamin Lecomte",153,13,0.5,0,0],[9,14,"Anton Stach",230,14,20.0,137,2369],[9,14,"Noah Okafor",3,17,19.0,109,1553],[9,14,"Jaka Bijol",237,17,18.0,99,1888],[9,14,"Lucas Perri",166,13,16.0,43,1440],[9,14,"Sean Longstaff",159,12,13.8,56,1003],[9,14,"Gabriel Gudmundsson",127,13,11.6,68,2637],[9,14,"James Justin",133,12,9.3,94,1893],[9,14,"Sebastiaan Bornauw",243,14,6.0,25,429],[9,16,"Alexander Isak",159,12,145.0,41,694],[9,16,"Florian Wirtz",31,14,125.0,125,2374],[9,16,"Hugo Ekitiké",84,14,95.0,125,1797],[9,16,"Milos Kerkez",43,12,46.9,85,2251],[9,16,"Jeremie Frimpong",31,14,40.0,63,1032],[9,16,"Giovanni Leoni",173,17,31.0,0,0],[9,18,"Tijjani Reijnders",3,17,55.0,92,1623],[9,18,"Rayan Aït-Nouri",257,12,36.8,60,971],[9,18,"Rayan Cherki",166,13,36.5,135,1772],[9,18,"James Trafford",48,12,31.2,13,360],[9,18,"Gianluigi Donnarumma",172,13,30.0,135,3060],[9,18,"Sverre Nypan",194,21,15.0,0,0],[9,18,"Marcus Bettinelli",60,12,2.4,0,0],[9,19,"Benjamin Šeško",179,14,76.5,111,1630],[9,19,"Bryan Mbeumo",44,12,75.0,148,2611],[9,19,"Matheus Cunha",257,12,74.2,143,2493],[9,19,"Senne Lammens",195,3,21.0,109,2880],[9,19,"Diego León",66,22,4.0,0,0],[9,21,"Nick Woltemade",241,14,75.0,108,1896],[9,21,"Anthony Elanga",162,12,61.4,48,1302],[9,21,"Yoane Wissa",44,12,57.7,27,517],[9,21,"Jacob Ramsey",18,12,45.1,62,1441],[9,21,"Malick Thiaw",3,17,35.0,126,2963],[9,23,"Omari Hutchinson",116,12,43.4,82,1676],[9,23,"Dan Ndoye",38,17,42.0,50,1167],[9,23,"Dilane Bakwa",181,13,35.0,26,549],[9,23,"Arnaud Kalimuendo",223,13,30.0,9,89],[9,23,"James McAtee",142,12,25.5,17,288],[9,23,"Igor Jesus",42,4,19.0,114,2293],[9,23,"Nicolò Savona",118,17,13.0,39,1025],[9,23,"Jair Cunha",42,4,12.0,13,514],[9,23,"John Victor",42,4,8.0,11,437],[9,23,"Cuiabano",42,4,6.0,null,null],[9,27,"Habib Diarra",181,13,31.5,65,1403],[9,27,"Simon Adingra",45,12,24.4,34,649],[9,27,"Enzo Le Fée",7,17,23.0,147,2930],[9,27,"Brian Brobbey",10,20,20.0,92,1920],[9,27,"Chemsdine Talbi",65,3,20.0,83,1553],[9,27,"Noah Sadiki",239,3,17.0,80,2891],[9,27,"Granit Xhaka",31,14,15.0,124,2901],[9,27,"Nordi Mukiele",172,13,12.0,151,2784],[9,27,"Omar Alderete",98,30,11.6,125,2797],[9,27,"Robin Roefs",156,20,10.5,136,3150],[9,27,"Bertrand Traoré",10,20,2.9,30,634],[9,29,"Xavi Simons",179,14,65.0,80,1747],[9,29,"Mohammed Kudus",253,12,63.8,75,1535],[9,29,"Mathys Tel",32,14,35.0,78,1334],[9,29,"Kevin Danso",180,13,25.0,63,1489],[9,29,"Luka Vuskovic",106,7,11.0,0,0],[9,29,"Kota Takai",125,18,5.8,0,0],[9,32,"Mateus Fernandes",215,12,44.0,135,3017],[9,32,"Jean-Clair Todibo",163,13,40.0,46,1817],[9,32,"El Hadji Malick Diouf",200,8,22.0,104,2706],[9,32,"Mads Hermansen",133,12,20.8,76,1620],[9,32,"Soungoutou Magassa",6,13,17.0,42,971],[9,33,"Jørgen Strand Larsen",57,30,27.0,75,2301],[9,33,"Tolu Arokodare",121,3,26.0,66,1402],[9,33,"Fer López",57,30,23.0,12,228],[9,33,"Jhon Arias",93,4,17.0,45,1117],[9,33,"Jackson Tchatchoua",109,17,12.5,52,1834],[9,33,"David Møller Wolfe",9,20,12.0,35,1042]]};
+
+var season = "2025-26", club = "All clubs", metric = "spend";
+var $ = function(id){ return document.getElementById(id); };
+var esc = function(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+
+function fmt(n){
+  return n >= 1000 ? (n/1000).toFixed(2) + "bn" : n.toFixed(n < 10 ? 1 : 0) + "m";
+}
+
+function clubsFor(s){
+  var si = DATA.seasons.indexOf(s), set = {};
+  DATA.rows.forEach(function(r){
+    if (s === "All seasons" || r[0] === si) set[DATA.clubs[r[1]]] = 1;
+  });
+  return ["All clubs"].concat(Object.keys(set).sort());
+}
+
+function filtered(){
+  var si = DATA.seasons.indexOf(season), ci = DATA.clubs.indexOf(club);
+  return DATA.rows.filter(function(r){
+    return (season === "All seasons" || r[0] === si) &&
+           (club === "All clubs" || r[1] === ci);
+  });
+}
+
+function render(){
+  // keep the club list in step with the season
+  var opts = clubsFor(season);
+  if (opts.indexOf(club) === -1) club = "All clubs";
+  $("club").innerHTML = opts.map(function(c){
+    return '<option'+(c===club?' selected':'')+'>'+esc(c)+'</option>'; }).join("");
+
+  var rows = filtered();
+  var total = rows.reduce(function(a,r){ return a + r[5]; }, 0);
+
+  // country aggregation
+  var m = {};
+  rows.forEach(function(r){
+    var k = DATA.countries[r[4]];
+    if (!m[k]) m[k] = {country:k, spend:0, count:0};
+    m[k].spend += r[5]; m[k].count += 1;
+  });
+  var byC = Object.keys(m).map(function(k){ return m[k]; }).sort(function(a,b){
+    return metric === "spend" ? b.spend - a.spend : (b.count - a.count) || (b.spend - a.spend);
+  });
+
+  var eng = rows.filter(function(r){ return DATA.countries[r[4]] === "England"; });
+  var share = total ? Math.round(eng.reduce(function(a,r){ return a+r[5]; },0)/total*100) : 0;
+
+  $("strip").innerHTML = [
+    ["\u20ac"+fmt(total), "spent on fees"],
+    [rows.length, rows.length === 1 ? "signing" : "signings"],
+    [byC.length, byC.length === 1 ? "country" : "countries"],
+    [share+"%", "of spend stayed in England"]
+  ].map(function(p){
+    return '<div class="stat"><b>'+p[0]+'</b><span>'+p[1]+'</span></div>'; }).join("");
+
+  $("scope").textContent = (club === "All clubs" ? "All clubs" : club) + " \u00b7 " +
+    (season === "All seasons" ? "2016-17 to 2025-26" : season);
+
+  // country bars
+  if (!byC.length){
+    $("countries").innerHTML =
+      '<p class="empty">No fee-paying permanent signings for this combination. Try another season or club.</p>';
+  } else {
+    var max = Math.max.apply(null, byC.map(function(d){
+      return metric === "spend" ? d.spend : d.count; }));
+    $("countries").innerHTML = byC.map(function(d){
+      var v = metric === "spend" ? d.spend : d.count;
+      var home = d.country === "England";
+      var w = Math.max(1.5, v/max*100);
+      return '<div class="crow">'
+        + '<div class="cname'+(home?' home':'')+'">'+esc(d.country)+'</div>'
+        + '<div class="track"><div class="bar'+(home?' home':'')+'" style="width:'+w+'%"></div></div>'
+        + '<div class="cval">'+(metric==="spend" ? "\u20ac"+fmt(d.spend)+' <i>'+d.count+'p</i>' : d.count)+'</div>'
+        + '</div>';
+    }).join("") +
+    '<p class="note">Purple marks signings from other English clubs.'+
+    (metric==="spend" ? ' \u201cp\u201d is the number of players.' : '')+'</p>';
+  }
+
+  // table
+  var t = rows.slice().sort(function(a,b){ return b[5] - a[5]; });
+  $("listwrap").style.display = t.length ? "" : "none";
+  if (t.length){
+    var showTo = club === "All clubs";
+    $("listhead").textContent = t.length + (t.length===1?" signing":" signings") + ", most expensive first";
+    $("thead").innerHTML = '<tr><th>Player</th><th>From</th><th>Country</th>'
+      + (showTo ? '<th>To</th>' : '')
+      + '<th class="num">Fee</th><th class="num">FPL pts</th></tr>';
+    $("tbody").innerHTML = t.map(function(r){
+      return '<tr><td style="font-weight:500">'+esc(r[2])+'</td>'
+        + '<td class="dim">'+esc(DATA.fromClubs[r[3]])+'</td>'
+        + '<td>'+esc(DATA.countries[r[4]])+'</td>'
+        + (showTo ? '<td class="dim">'+esc(DATA.clubs[r[1]])+'</td>' : '')
+        + '<td class="num fee">\u20ac'+r[5].toFixed(1)+'m</td>'
+        + '<td class="num'+(r[6]==null?' dim':'')+'">'+(r[6]==null?"\u2014":r[6])+'</td></tr>';
+    }).join("");
+  }
+}
+
+// ---------- market comparison ----------
+var MIN_N = 8;
+var sel = {England:1, Portugal:1, Spain:1, France:1};
+
+function scored(){ return DATA.rows.filter(function(r){ return r[6] != null; }); }
+function median(a){
+  if(!a.length) return 0;
+  var b=a.slice().sort(function(x,y){return x-y;}), m=b.length>>1;
+  return b.length%2 ? b[m] : (b[m-1]+b[m])/2;
+}
+function byCountry(){
+  var g={};
+  scored().forEach(function(r){
+    var k=DATA.countries[r[4]];
+    (g[k]=g[k]||[]).push(r);
+  });
+  return g;
+}
+function eligible(){
+  var g=byCountry(), out=[];
+  Object.keys(g).forEach(function(k){ if(g[k].length>=MIN_N) out.push([k,g[k]]); });
+  return out.sort(function(a,b){ return b[1].length-a[1].length; });
+}
+function measure(v, m){
+  if(m==='medPts')  return median(v.map(function(r){return r[6];}));
+  if(m==='pts90'){
+    var q=v.filter(function(r){return r[7]>=900;}).map(function(r){return r[6]/(r[7]/90);});
+    return q.length ? median(q) : 0;
+  }
+  if(m==='perFee'){
+    var p=0,f=0; v.forEach(function(r){p+=r[6]; f+=r[5];}); return f? p/f : 0;
+  }
+  return v.filter(function(r){return r[7]>=900;}).length / v.length * 100;
+}
+function fmtM(x,m){
+  if(m==='medPts') return x.toFixed(0);
+  if(m==='startShare') return x.toFixed(0)+'%';
+  return x.toFixed(2);
+}
+
+function renderCompare(){
+  var m=$('metric2').value, el=eligible();
+  $('chips').innerHTML = el.map(function(p){
+    return '<button class="chip'+(p[0]==='England'?' eng':'')+'" data-c="'+esc(p[0])+'" aria-pressed="'+
+      (sel[p[0]]?'true':'false')+'">'+esc(p[0])+'<small>'+p[1].length+'</small></button>';
+  }).join('');
+  Array.prototype.forEach.call($('chips').children, function(b){
+    b.onclick=function(){
+      var c=b.getAttribute('data-c');
+      if(sel[c]) delete sel[c]; else sel[c]=1;
+      renderCompare();
+    };
+  });
+
+  var picked = el.filter(function(p){ return sel[p[0]]; });
+  if(picked.length<1){
+    $('compare').innerHTML='<p class="empty">Pick at least one country to compare.</p>';
+    $('matrix').innerHTML=''; $('verdict').textContent='';
+    $('chart').innerHTML=''; $('legend').innerHTML=''; return;
+  }
+  var vals = picked.map(function(p){ return [p[0], measure(p[1],m), p[1].length]; })
+                   .sort(function(a,b){ return b[1]-a[1]; });
+  var max = Math.max.apply(null, vals.map(function(v){return v[1];})) || 1;
+  $('compare').innerHTML = vals.map(function(v){
+    var home = v[0]==='England';
+    return '<div class="mrow"><div class="cname'+(home?' home':'')+'">'+esc(v[0])+
+      ' <span class="thin">n='+v[2]+'</span></div>'+
+      '<div class="track"><div class="bar'+(home?' home':'')+'" style="width:'+
+      Math.max(1.5, v[1]/max*100)+'%"></div></div>'+
+      '<div class="cval">'+fmtM(v[1],m)+'</div></div>';
+  }).join('');
+
+  // fee-band matrix
+  var bands=[[0,10,'under \u20ac10m'],[10,25,'\u20ac10-25m'],[25,50,'\u20ac25-50m'],[50,1e9,'\u20ac50m+']];
+  var g=byCountry();
+  var head='<thead><tr><th>Fee band</th>'+picked.map(function(p){
+    return '<th>'+esc(p[0])+'</th>'; }).join('')+'</tr></thead>';
+  var body=bands.map(function(b){
+    var cells=picked.map(function(p){
+      var v=g[p[0]].filter(function(r){ return r[5]>=b[0] && r[5]<b[1]; });
+      return v.length>=6 ? {v:median(v.map(function(r){return r[6];})), n:v.length} : null;
+    });
+    var best=Math.max.apply(null, cells.map(function(c){ return c?c.v:-1; }));
+    return '<tr><td>'+b[2]+'</td>'+cells.map(function(c){
+      if(!c) return '<td class="thin">&middot;</td>';
+      return '<td'+(c.v===best&&best>0?' class="best"':'')+'>'+c.v.toFixed(0)+
+        ' <span class="thin">('+c.n+')</span></td>';
+    }).join('')+'</tr>';
+  }).join('');
+  $('matrix').innerHTML=head+'<tbody>'+body+'</tbody>';
+
+  renderChart(picked, m);
+
+  var win=vals[0];
+  $('verdict').textContent='· = fewer than 6 players in that cell, so no median is shown. '+
+    'Bracketed figures are sample sizes. On this measure '+win[0]+' leads'+
+    (win[0]==='England'?'':', but check whether it still leads at matching fees before reading much into it')+'.';
+}
+var LINE=['#37003C','#FF2882','#0B8F7E','#E0821C','#4C5FD5','#8E44AD','#2E7D32','#C0392B','#00838F'];
+function colorFor(name){
+  var el=eligible(), i=0;
+  for(var k=0;k<el.length;k++) if(el[k][0]===name) i=k;
+  return name==='England' ? LINE[0] : LINE[1+(i%(LINE.length-1))];
+}
+
+function renderChart(picked, m){
+  var S=DATA.seasons, W=820, H=310, L=46, R=14, T=14, B=40;
+  var series = picked.map(function(p){
+    var bySeason={};
+    p[1].forEach(function(r){ (bySeason[S[r[0]]]=bySeason[S[r[0]]]||[]).push(r); });
+    return {
+      name:p[0], color:colorFor(p[0]),
+      pts:S.map(function(s){
+        var v=bySeason[s]||[];
+        return v.length ? {s:s, n:v.length, y:measure(v,m)} : null;
+      })
+    };
+  });
+  var all=[]; series.forEach(function(t){ t.pts.forEach(function(p){ if(p) all.push(p.y); }); });
+  var ymax=Math.max.apply(null, all.concat([1]))*1.12;
+  var x=function(i){ return L + i*(W-L-R)/(S.length-1); };
+  var y=function(v){ return T + (H-T-B)*(1-v/ymax); };
+
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" '+
+          'role="img" aria-label="First-season performance by selling country, per season">';
+  // gridlines
+  for(var k=0;k<=4;k++){
+    var gv=ymax*k/4, gy=y(gv);
+    svg+='<line x1="'+L+'" y1="'+gy+'" x2="'+(W-R)+'" y2="'+gy+'" stroke="#EDE6F0"/>'+
+         '<text x="'+(L-8)+'" y="'+(gy+4)+'" text-anchor="end" font-size="11" fill="#7A6B80">'+
+         (m==='medPts'?gv.toFixed(0):m==='startShare'?gv.toFixed(0)+'%':gv.toFixed(1))+'</text>';
+  }
+  S.forEach(function(s,i){
+    svg+='<text x="'+x(i)+'" y="'+(H-16)+'" text-anchor="middle" font-size="10.5" fill="#7A6B80">'+
+         s.slice(2)+'</text>';
+  });
+  // one path per contiguous run, dashed where either end is a small sample
+  series.forEach(function(t){
+    for(var i=0;i<S.length-1;i++){
+      var a=t.pts[i], b=t.pts[i+1];
+      if(!a||!b) continue;
+      var weak=(a.n<4||b.n<4);
+      svg+='<line x1="'+x(i)+'" y1="'+y(a.y)+'" x2="'+x(i+1)+'" y2="'+y(b.y)+'" stroke="'+t.color+
+           '" stroke-width="'+(t.name==='England'?2.6:1.8)+'" '+
+           (weak?'stroke-dasharray="4 4" opacity=".5"':'opacity=".9"')+' fill="none"/>';
+    }
+    t.pts.forEach(function(p,i){
+      if(!p) return;
+      var solid=p.n>=4;
+      svg+='<circle cx="'+x(i)+'" cy="'+y(p.y)+'" r="'+(solid?3.6:3)+'" '+
+           (solid?'fill="'+t.color+'"':'fill="#fff" stroke="'+t.color+'" stroke-width="1.5"')+'>'+
+           '<title>'+esc(t.name)+' '+p.s+': '+
+           (m==='medPts'?p.y.toFixed(0):m==='startShare'?p.y.toFixed(0)+'%':p.y.toFixed(2))+
+           ' (n='+p.n+')</title></circle>';
+    });
+  });
+  svg+='</svg>';
+  $('chart').innerHTML=svg;
+
+  $('legend').innerHTML = series.map(function(t){
+    var ns=t.pts.filter(Boolean).map(function(p){return p.n;});
+    var lo=ns.length?Math.min.apply(null,ns):0, hi=ns.length?Math.max.apply(null,ns):0;
+    return '<span><i style="background:'+t.color+'"></i>'+esc(t.name)+
+      ' <span class="thin">'+lo+'\u2013'+hi+' per season</span></span>';
+  }).join('');
+}
+
+$('metric2').onchange = renderCompare;
+
+// wire up
+$("season").innerHTML = '<option>All seasons</option>' +
+  DATA.seasons.map(function(s){
+    return '<option'+(s===season?' selected':'')+'>'+s+'</option>'; }).join("");
+$("season").onchange = function(e){ season = e.target.value; render(); };
+$("club").onchange   = function(e){ club   = e.target.value; render(); };
+["spend","count"].forEach(function(k){
+  $("m-"+k).onclick = function(){
+    metric = k;
+    $("m-spend").setAttribute("aria-pressed", String(k==="spend"));
+    $("m-count").setAttribute("aria-pressed", String(k==="count"));
+    render();
+  };
+});
+render();
+renderCompare();
+</script>
+</body>
+</html>
